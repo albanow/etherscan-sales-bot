@@ -6,9 +6,7 @@ import pyshorteners as sh
 import os
 import json
 
-"""Short the URL of the 'Transaction Details' in etherscan
-note: this can be fail if the tinyurl server is unreachable"""
-""" s = sh.Shortener() """
+s = sh.Shortener()
 
 """ Get this from your Twitter development account (not in repo) 
 you need to create secrets_keys.py file in your cloned repo """
@@ -44,8 +42,9 @@ while True:
             r_asset = requests.post(url_transfers, headers=headers_req)
             r_json = r_asset.json()
             r_asset.close()
+            break
         except (ConnectionResetError, requests.exceptions.RequestException, json.decoder.JSONDecodeError):
-            print(r_asset,"----", r_asset.text)
+            print(r_asset, "----", r_asset.text)
             time.sleep(2)
 
     """Need to extract the Txn Hash and token of the latest Transfer
@@ -56,11 +55,16 @@ while True:
 
     url_txhash = etherscan_url_tx+str(Txn_Hash)+"&apikey="+sk.etherscan_key
 
-    """Make a request to the extracted Txn Hash from the latest Transfer"""
-    hash_details = requests.post(url_txhash)
-    r_json_details = hash_details.json()
-    hash_details.close()
-    time.sleep(2)
+    for _ in range(10):
+        try:
+            """Make a request to the extracted Txn Hash from the latest Transfer"""
+            hash_details = requests.post(url_txhash)
+            r_json_details = hash_details.json()
+            hash_details.close()
+            break
+        except (ConnectionResetError, requests.exceptions.RequestException, json.decoder.JSONDecodeError):
+            print(hash_details, "----", hash_details.text)
+            time.sleep(2)
 
     if latest_tx != past_tx:
         past_tx = latest_tx
@@ -94,27 +98,33 @@ while True:
             """Final price(cost) of the Transfer in ETH rounded to 6 decimals"""
             final_price_eth = round(float(sum_price), 6)
 
-            """Get the current prices of ETH (BTC and USD)"""
-            eth_prices = requests.post(etherscan_eth_prices+sk.etherscan_key)
-            eth_prices_json = eth_prices.json()
+            for _ in range(10):
+                try:
+                    """Get the current prices of ETH (BTC and USD)"""
+                    eth_prices = requests.post(
+                        etherscan_eth_prices+sk.etherscan_key)
+                    eth_prices_json = eth_prices.json()
+                    break
+                except (ConnectionResetError, requests.exceptions.RequestException, json.decoder.JSONDecodeError):
+                    print(eth_prices, "----", eth_prices.text)
+                    time.sleep(2)
 
             """Extract the ETH price in USD"""
             usd_price = float(eth_prices_json["result"]["ethusd"])
             final_price_usd = round(final_price_eth*usd_price, 2)
 
-            """URL of the NFT image
-            note: Adapt this code under your needs"""
+            """URL of the NFT image"""
             if len(token_id) == 1:
                 token_id = "000"+token_id
             elif len(token_id) == 2:
                 token_id = "00"+token_id
             elif len(token_id) == 3:
                 token_id = "0"+token_id
-            
+
             link_phunk = "https://phunks.s3.us-east-2.amazonaws.com/notpunks/notpunk" + \
                 token_id+".png"
 
-            """URL of the 'Transaction Details' in etherscan"""
+            """Short the URL of the 'Transaction Details' in etherscan"""
             url_tx = etherscan_base_url+Txn_Hash
 
             """Short the URL of the 'Transaction Details' in etherscan
@@ -130,8 +140,7 @@ while True:
 
             """Final text to post in twitter with the price in ETH, the price in
             USD, the image of the NFT, the URL to the Transaction in etherscan
-            and some hash tags
-            note: Adapt this code under your needs"""
+            and some hash tags"""
             phunk_sale = "Phunk #"+str(token_id) + " was flipped for Ξ" + \
                 str(final_price_eth) + " ($"+str(final_price_usd)+")\n"
             hash_tags = "#CryptoPhunks #Phunks #AltPhunks"
@@ -157,7 +166,7 @@ while True:
             """Update the status in Twitter"""
             res_status = api.update_with_media('nft_image.png', status=tweet)
 
-            """Remove the downloaded image after posting on twitter"""
+            """Remove the downloaded image"""
             os.remove("nft_image.png")
 
     """The Free Api-Key Token from Etherscan only allows Up to 100,000 API calls per day
