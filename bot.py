@@ -178,8 +178,8 @@ while True:
             # with the image of the sold NFT attached
             res_status = api.update_with_media(
                 'nft_image.png', status=tweet_text)
-            if "created_at" in res_status:
-                print("Tweet posted at: ", res_status["created_at"])
+            if "created_at" in res_status._json:
+                print("Tweet posted at: ", res_status._json["created_at"])
 
             """Remove the downloaded image"""
             os.remove("nft_image.png")
