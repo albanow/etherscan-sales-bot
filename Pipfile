@@ -6,7 +6,6 @@ name = "pypi"
 [packages]
 requests = "*"
 tweepy = "*"
-pyshorteners = "*"
 
 [dev-packages]
 
