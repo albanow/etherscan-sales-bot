@@ -33,7 +33,7 @@ headers_req = {'Accept': 'application/json'}
 # Seed for the bot to start (latest Txn Hash from Etherscan)
 # or you can leave this value empty if you are running the bot for
 # the first time
-past_tx = "0x7e059114725ecacbdce8f8e7824f56c415b02615c027ca1f969d4336aebf48cd"
+past_tx = ""
 latest_tx = ""
 
 # Run the Bot til the infinite
@@ -57,6 +57,7 @@ while True:
     # from etherscan
     Txn_Hash = r_json["result"][0]["hash"]
     latest_tx = Txn_Hash
+    from_address = str(r_json["result"][0]["from"])
     token_id = str(r_json["result"][0]["tokenID"])
 
     url_txhash = etherscan_url_tx+str(Txn_Hash)+"&apikey="+sk.etherscan_key
@@ -98,7 +99,10 @@ while True:
 
                     for idx, val in enumerate(reversed(asset_price_api)):
                         if val != "0":
-                            asset_price = asset_price_api[:-idx]
+                            if idx == 0:
+                                asset_price = asset_price_api
+                            else:
+                                asset_price = asset_price_api[:-idx]
                             break
                 else:
                     asset_price = round(float(
@@ -183,7 +187,8 @@ while True:
 
             """Remove the downloaded image"""
             os.remove("nft_image.png")
-
+        elif from_address == sk.vault_token_address:
+            print(from_address)
     # The Free Api-Key Token from Etherscan only allows Up to 100,000 API calls per day
     # so wait some seconds to make a new request to check for a new Transaction
     # Adapt this wait time as you need
