@@ -58,7 +58,12 @@ while True:
     Txn_Hash = r_json["result"][0]["hash"]
     latest_tx = Txn_Hash
     from_address = str(r_json["result"][0]["from"])
+    to_address = str(r_json["result"][0]["to"])
     token_id = str(r_json["result"][0]["tokenID"])
+    filter_address = [from_address, to_address]
+    if sk.nftx_vault_address in filter_address:
+        time.sleep(2)
+        continue
 
     url_txhash = etherscan_url_tx+str(Txn_Hash)+"&apikey="+sk.etherscan_key
 
@@ -105,8 +110,11 @@ while True:
                                 asset_price = asset_price_api[:-idx]
                             break
                 else:
-                    asset_price = round(float(
-                        asset_price_api[:price_size-asset_dec_int] + "." + asset_price_api[price_size-asset_dec_int:]), 6)
+                    asset_price = round(
+                        float(
+                            asset_price_api[: price_size - asset_dec_int] + "." +
+                            asset_price_api[price_size - asset_dec_int:]),
+                        6)
 
                 sum_price = float(asset_price) + sum_price
 

@@ -4,4 +4,4 @@ key = "replace_with_your_own"
 secret = "replace_with_your_own"
 etherscan_key = "replace_with_your_own"
 contract_number = "replace_with_your_own"
-
+nftx_vault_address = "0xb39185e33e8c28e0bb3dbbce24da5dea6379ae91"
