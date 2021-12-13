@@ -120,6 +120,8 @@ while True:
 
             # Final price(cost) of the Transfer in ETH rounded to 6 decimal
             final_price_eth = round(float(sum_price), 6)
+            if final_price_eth < 0.4:
+                continue
 
             # Make a request to get the ETH current prices (ETH/BTC).
             # Try request_try times in case any exception is throw
