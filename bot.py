@@ -4,10 +4,12 @@ import tweepy
 import secrets_keys as sk
 import os
 import json
+import utilities as ut
 
 # If you are getting many error response code from the request
 # and the bot is failing because of this then please increase this number
 request_try = 10
+image_name = "nft_image.png"
 
 # Get this from your Twitter development account (not in repo)
 # and you need to add them to secrets_keys.py file in your cloned repo
@@ -151,11 +153,13 @@ while True:
             # the token ID if not then you need to adapt the code to your needs
             # **Contact me if you need help with this
             # For 10,000 NFT collection from 0 to 9999 (4 digits collection)
-            digits_collection = 4
-            token_id = "0" * (digits_collection - len(token_id)) + token_id
+            if len(token_id) == 1:
+                token_id = "00" + token_id
+            elif len(token_id) == 2:
+                token_id = "0" + token_id
 
             # URL of the NFT image in you server including the NFT token ID
-            link_nft_image = "https://phunks.s3.us-east-2.amazonaws.com/notpunks/notpunk" + \
+            link_nft_image = "https://phunks.s3.us-east-2.amazonaws.com/images/phunk" + \
                 token_id+".png"
 
             # URL of the 'Transaction Details' (sale/transfer) in etherscan
@@ -201,19 +205,24 @@ while True:
 
             # Download (temporarily) the NFT image to attach it to the twitter post
             response = requests.get(link_nft_image)
-            file = open("nft_image.png", "wb")
+            file = open(image_name, "wb")
             file.write(response.content)
             file.close()
+            ut.create_background(image_name, (96, 131, 151))
 
             # Post the message in your Twitter Bot account
             # with the image of the sold NFT attached
-            res_status = api.update_with_media(
-                'nft_image.png', status=tweet_text)
+            media = api.media_upload(image_name)
+            # Post the message in your Twitter Bot account
+            # with the image of the sold NFT attached
+            res_status = api.update_status(
+                status=tweet_text, media_ids=[media.media_id])
+
             if "created_at" in res_status._json:
                 print("Tweet posted at: ", res_status._json["created_at"])
 
             """Remove the downloaded image"""
-            os.remove("nft_image.png")
+            os.remove(image_name)
         elif from_address == sk.vault_token_address:
             print(from_address)
     # The Free Api-Key Token from Etherscan only allows Up to 100,000 API calls per day
